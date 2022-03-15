@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+
+  ytc-frontend:
+    container_name: ytc-frontend
+    image: ytcfrontend:latest
+    ports:
+      - '8080:80'
+    depends_on:
+      - ytc-backend
+  
+  ytc-backend:
+
+    container_name: ytc-backend
+    image: ytcbackend:latest
+    ports:
+      - 8000:8000
+    depends_on:
+      - migrate
+
+  migrate:
+    container_name: migrate
+    image: ytcbackend:latest
+    environment:
+      - MYSQL_DATABASE=db
+      - MYSQL_ROOT_PASSWORD=example
+    command:
+      [
+        sh,
+        -cx,
+        'python ./drf_jwt_backend/manage.py migrate'
+      ]
+    depends_on:
+      - db
+  
+  db:
+    container_name: db
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes: 
+      - db_volumes:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: db
+      MYSQL_ROOT_PASSWORD: example
+    
+volumes:
+  db_volumes:

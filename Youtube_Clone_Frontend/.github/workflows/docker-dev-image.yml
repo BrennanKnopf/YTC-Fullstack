@@ -1,0 +1,69 @@
+name: Docker Dev Image CI
+ 
+on:
+  pull_request:
+    branches: [main]
+   
+  workflow_dispatch:
+  create:
+      tags:
+        - v*
+
+  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    # - name: Run docker compose on dev files
+    #   run: docker-compose -f "docker-compose-dev.yml" up -d --build
+
+    - name: Auto-Merge Pull Request
+      uses: reitermarkus/automerge@v1.5.2
+
+    - name: Bump version number
+      run: |
+            git config --global user.email "brennanknopf@gmail.com"
+            git config --global user.name "Brennan Knopf"
+            git pull
+            npm version patch
+            git push --tags
+            git push
+      
+    - name: 'Get Previous tag'
+      id: previoustag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      with:
+          fallback: 0.0.1 # Optional fallback tag to use when no tag can be found
+    - name: 'Get next minor version'
+      id: semvers
+      uses: "WyriHaximus/github-action-next-semvers@v1"
+      with:
+          version: ${{ steps.previoustag.outputs.tag }}
+
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "release.tar.gz,release.zip,foo/*.txt"
+        bodyFile: "body.md"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+
+    
+
+
+   
+    
+
+
+
+
+
+     
